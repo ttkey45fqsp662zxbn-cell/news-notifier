@@ -16,7 +16,7 @@ from datetime import datetime, timedelta, timezone
 
 import feedparser
 
-from sources import ALL_SOURCES, POLITICS_KEYWORDS, ECONOMY_KEYWORDS
+from sources import ALL_SOURCES, POLITICS_KEYWORDS, ECONOMY_KEYWORDS, EXCLUDE_KEYWORDS
 
 JST = timezone(timedelta(hours=9))
 REQUEST_TIMEOUT = 10  # 秒
