@@ -82,7 +82,7 @@ def fetch_all(category: str) -> list[dict]:
 
     print(f"[INFO] category={category}: {alive_count}/{len(sources)} ソースが生存, "
           f"記事数={len(all_articles)}", file=sys.stderr)
-    return 
+    return all_articles
   
 
 def filter_relevant(articles: list[dict]) -> list[dict]:
