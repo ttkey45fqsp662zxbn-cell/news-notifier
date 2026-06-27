@@ -64,16 +64,26 @@ def send_text(message: str) -> bool:
         return False
 
 
+def _is_google_news(source: str) -> bool:
+    """ソース名がGoogleニュース由来かどうかを判定する。"""
+    return "Google" in source
+
+
 def build_digest_message(politics_articles: list[dict], economy_articles: list[dict],
                           label: str, max_items_per_category: int = 6) -> str:
-    """朝/夕のまとめ通知用のテキストを作る。"""
+    """朝/夕のまとめ通知用のテキストを作る。
+
+    Googleニュース由来の記事はリンクが非常に長い(ハッシュ化されたリダイレクトURL)ため、
+    見出しと出典のみ表示し、リンクは省略する。
+    """
     lines = [f"📰 {label}のニュースまとめ", ""]
 
     lines.append("【政治】")
     if politics_articles:
         for art in politics_articles[:max_items_per_category]:
             lines.append(f"・{art['title']}（{art['source']}）")
-            lines.append(f"  {art['link']}")
+            if not _is_google_news(art["source"]):
+                lines.append(f"  {art['link']}")
     else:
         lines.append("特に大きな動きはありませんでした。")
 
@@ -82,7 +92,8 @@ def build_digest_message(politics_articles: list[dict], economy_articles: list[d
     if economy_articles:
         for art in economy_articles[:max_items_per_category]:
             lines.append(f"・{art['title']}（{art['source']}）")
-            lines.append(f"  {art['link']}")
+            if not _is_google_news(art["source"]):
+                lines.append(f"  {art['link']}")
     else:
         lines.append("特に大きな動きはありませんでした。")
 
@@ -90,12 +101,16 @@ def build_digest_message(politics_articles: list[dict], economy_articles: list[d
 
 
 def build_breaking_message(article: dict) -> str:
-    """速報1件分の通知テキストを作る。"""
+    """速報1件分の通知テキストを作る。
+
+    Googleニュース由来の場合はリンクが長いため省略する。
+    """
     category_label = "政治" if article["category"] == "politics" else "経済"
     lines = [
         f"🚨 速報【{category_label}】",
         article["title"],
         f"（{article['source']} ほか複数ソースが報道）",
-        article["link"],
     ]
+    if not _is_google_news(article["source"]):
+        lines.append(article["link"])
     return "\n".join(lines)
