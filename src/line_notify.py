@@ -64,11 +64,6 @@ def send_text(message: str) -> bool:
         return False
 
 
-def _is_google_news(source: str) -> bool:
-    """ソース名がGoogleニュース由来かどうかを判定する。"""
-    return "Google" in source
-
-
 def _diversify(articles: list[dict], max_per_source: int = 2) -> list[dict]:
     """1つのソースから採用する記事数を制限し、特定ソースに偏らないようにする。
 
@@ -90,9 +85,9 @@ def build_digest_message(politics_articles: list[dict], economy_articles: list[d
                           label: str, max_items_per_category: int = 6) -> str:
     """朝/夕のまとめ通知用のテキストを作る。
 
-    Googleニュース由来の記事はリンクが非常に長い(ハッシュ化されたリダイレクトURL)ため、
-    見出しと出典のみ表示し、リンクは省略する。
-    また、1ソースに記事一覧が独占されないよう_diversify()で件数を分散させる。
+    気になった記事は元のページに飛べるよう、リンクは常に表示する
+    (Googleニュース経由の場合はリダイレクトURLになるが、開けば元記事に到達できる)。
+    1ソースに記事一覧が独占されないよう_diversify()で件数を分散させる。
     """
     politics_articles = _diversify(politics_articles)
     economy_articles = _diversify(economy_articles)
@@ -103,8 +98,7 @@ def build_digest_message(politics_articles: list[dict], economy_articles: list[d
     if politics_articles:
         for art in politics_articles[:max_items_per_category]:
             lines.append(f"・{art['title']}（{art['source']}）")
-            if not _is_google_news(art["source"]):
-                lines.append(f"  {art['link']}")
+            lines.append(f"  {art['link']}")
     else:
         lines.append("特に大きな動きはありませんでした。")
 
@@ -113,8 +107,7 @@ def build_digest_message(politics_articles: list[dict], economy_articles: list[d
     if economy_articles:
         for art in economy_articles[:max_items_per_category]:
             lines.append(f"・{art['title']}（{art['source']}）")
-            if not _is_google_news(art["source"]):
-                lines.append(f"  {art['link']}")
+            lines.append(f"  {art['link']}")
     else:
         lines.append("特に大きな動きはありませんでした。")
 
@@ -122,16 +115,12 @@ def build_digest_message(politics_articles: list[dict], economy_articles: list[d
 
 
 def build_breaking_message(article: dict) -> str:
-    """速報1件分の通知テキストを作る。
-
-    Googleニュース由来の場合はリンクが長いため省略する。
-    """
+    """速報1件分の通知テキストを作る。気になった記事を確認できるよう常にリンクを付ける。"""
     category_label = "政治" if article["category"] == "politics" else "経済"
     lines = [
         f"🚨 速報【{category_label}】",
         article["title"],
         f"（{article['source']} ほか複数ソースが報道）",
+        article["link"],
     ]
-    if not _is_google_news(article["source"]):
-        lines.append(article["link"])
     return "\n".join(lines)
