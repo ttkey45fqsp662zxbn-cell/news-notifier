@@ -100,8 +100,12 @@ def fetch_recent(category: str, hours: int = 12) -> list[dict]:
     """直近N時間以内の、関連性フィルタを通過した記事を返す。"""
     articles = fetch_all(category)
     relevant = filter_relevant(articles)
+    print(f"[INFO] category={category}: キーワードフィルタ通過={len(relevant)}/{len(articles)}件",
+          file=sys.stderr)
     cutoff = datetime.now(JST) - timedelta(hours=hours)
     recent = [a for a in relevant if a["published"] >= cutoff]
+    print(f"[INFO] category={category}: 時間フィルタ(直近{hours}時間)通過={len(recent)}/{len(relevant)}件",
+          file=sys.stderr)
     # 新しい順に並べる
     recent.sort(key=lambda a: a["published"], reverse=True)
     return recent
