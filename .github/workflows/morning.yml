@@ -1,1 +1,37 @@
+name: 朝のニュースまとめ通知
 
+on:
+  schedule:
+    # JST 7:00 = UTC 22:00(前日)
+    - cron: "0 22 * * *"
+  workflow_dispatch: {}  # 手動実行用(動作確認に便利)
+
+permissions:
+  contents: write
+
+jobs:
+  digest:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: 依存パッケージのインストール
+        run: pip install -r requirements.txt
+
+      - name: 朝のまとめ通知を実行
+        env:
+          LINE_CHANNEL_ACCESS_TOKEN: ${{ secrets.LINE_CHANNEL_ACCESS_TOKEN }}
+          LINE_USER_ID: ${{ secrets.LINE_USER_ID }}
+        run: python src/digest_main.py --label "朝" --hours 12
+
+      - name: 送信履歴をコミット
+        run: |
+          git config user.name "news-notifier-bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add data/sent_history.json
+          git diff --staged --quiet || git commit -m "送信履歴を更新(朝)"
+          git push
