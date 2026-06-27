@@ -69,13 +69,34 @@ def _is_google_news(source: str) -> bool:
     return "Google" in source
 
 
+def _diversify(articles: list[dict], max_per_source: int = 2) -> list[dict]:
+    """1つのソースから採用する記事数を制限し、特定ソースに偏らないようにする。
+
+    記事は既に新しい順にソートされている前提。各ソースごとにmax_per_source件まで
+    採用し、それ以降は除外する(Googleニュースのような網羅的なソースが
+    まとめ通知を独占しないようにするための調整)。
+    """
+    counts: dict[str, int] = {}
+    result = []
+    for art in articles:
+        src = art["source"]
+        counts[src] = counts.get(src, 0) + 1
+        if counts[src] <= max_per_source:
+            result.append(art)
+    return result
+
+
 def build_digest_message(politics_articles: list[dict], economy_articles: list[dict],
                           label: str, max_items_per_category: int = 6) -> str:
     """朝/夕のまとめ通知用のテキストを作る。
 
     Googleニュース由来の記事はリンクが非常に長い(ハッシュ化されたリダイレクトURL)ため、
     見出しと出典のみ表示し、リンクは省略する。
+    また、1ソースに記事一覧が独占されないよう_diversify()で件数を分散させる。
     """
+    politics_articles = _diversify(politics_articles)
+    economy_articles = _diversify(economy_articles)
+
     lines = [f"📰 {label}のニュースまとめ", ""]
 
     lines.append("【政治】")
