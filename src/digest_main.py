@@ -7,7 +7,12 @@
     python src/digest_main.py --label "夕"
 
 GitHub Actionsから1日2回(朝/夕)呼び出される想定。
-速報で既に送った記事は、まとめの対象から除外する(二重通知を避けるため)。
+
+NOTE: 速報チェックで既に送った記事も、まとめには再度含める。
+理由: 速報判定(複数ソース一致)に該当した記事だけ除外すると、その日の主要記事が
+「速報で送ったから」という理由でまとめから消えてしまい、「特に大きな動きは
+ありませんでした」という実態と異なる表示になることがあったため。
+まとめは「直近N時間の主要記事の一覧」として独立して動作させる。
 """
 from __future__ import annotations
 
@@ -16,7 +21,6 @@ import sys
 
 from fetcher import fetch_recent
 from line_notify import build_digest_message, send_text
-from state import load_history, filter_unsent, mark_as_sent, save_history, prune_history
 
 
 def main():
@@ -25,33 +29,17 @@ def main():
     parser.add_argument("--hours", type=int, default=12, help="何時間前までの記事を対象にするか")
     args = parser.parse_args()
 
-    history = prune_history(load_history())
-
     politics = fetch_recent("politics", hours=args.hours)
     economy = fetch_recent("economy", hours=args.hours)
 
-    # 速報で既に送信済みの記事はまとめから除外する
-    politics_unsent = filter_unsent(politics, history)
-    economy_unsent = filter_unsent(economy, history)
-
-    if not politics_unsent and not economy_unsent:
-        print("[INFO] 新規記事なし。通知はスキップします。", file=sys.stderr)
-        # 履歴ファイルは(prune結果を反映するため)保存しておく
-        save_history(history)
-        return
-
-    message = build_digest_message(politics_unsent, economy_unsent, label=args.label)
+    message = build_digest_message(politics, economy, label=args.label)
     ok = send_text(message)
 
     if ok:
-        history = mark_as_sent(politics_unsent, history)
-        history = mark_as_sent(economy_unsent, history)
         print(f"[INFO] {args.label}のまとめ通知を送信しました"
-              f"(政治{len(politics_unsent)}件, 経済{len(economy_unsent)}件)", file=sys.stderr)
+              f"(政治{len(politics)}件, 経済{len(economy)}件)", file=sys.stderr)
     else:
-        print("[ERROR] 通知送信に失敗しました。履歴は更新しません。", file=sys.stderr)
-
-    save_history(history)
+        print("[ERROR] 通知送信に失敗しました。", file=sys.stderr)
 
 
 if __name__ == "__main__":
