@@ -30,11 +30,12 @@ POLITICS_SOURCES = [
     {"name": "毎日新聞", "url": "https://mainichi.jp/rss/etc/mainichi-flash.rss"},
     {"name": "産経新聞", "url": "https://www.sankei.com/politics/feed/"},
     {"name": "日本経済新聞 政治", "url": "https://www.nikkei.com/rss/news/category/politics.rdf"},
-    # Googleニュース(政治カテゴリ): 個別メディアのサイトリニューアルに
-    # 左右されにくい安定したフォールバック先として追加
+    # Googleニュース(検索クエリ形式): トピックページ形式(/section/topic/...)は
+    # 内部的にハッシュ化URLへリダイレクトされ不安定なため、
+    # 確実に動作する検索クエリ形式(/rss/search?q=...)を使う。
     {
         "name": "Googleニュース 政治",
-        "url": "https://news.google.com/news/rss/headlines/section/topic/POLITICS.ja_jp/%E6%94%BF%E6%B2%BB?ned=jp&hl=ja&gl=JP",
+        "url": "https://news.google.com/rss/search?q=%E6%94%BF%E6%B2%BB&hl=ja&gl=JP&ceid=JP:ja",
     },
 ]
 
@@ -54,11 +55,16 @@ ECONOMY_SOURCES = [
     {"name": "Reuters Japan Business", "url": "https://jp.reuters.com/rssFeed/businessNews"},
     {"name": "Bloomberg Japan", "url": "https://www.bloomberg.co.jp/feed/topics/business"},
     {"name": "ロイター(三次配信)", "url": "https://rss.app/feeds/reuters-business.xml"},
-    # Googleニュース(ビジネスカテゴリ): 個別メディアのサイトリニューアルに
-    # 左右されにくい安定したフォールバック先として追加
+    # Googleニュース(検索クエリ形式): トピックページ形式は内部的に
+    # ハッシュ化URLへリダイレクトされ不安定なため、検索クエリ形式を使う。
+    # 「経済」と「市場」の2クエリを混ぜて取りこぼしを減らす。
     {
-        "name": "Googleニュース ビジネス",
-        "url": "https://news.google.com/news/rss/headlines/section/topic/BUSINESS.ja_jp/%E3%83%93%E3%82%B8%E3%83%8D%E3%82%B9?ned=jp&hl=ja&gl=JP",
+        "name": "Googleニュース 経済",
+        "url": "https://news.google.com/rss/search?q=%E7%B5%8C%E6%B8%88&hl=ja&gl=JP&ceid=JP:ja",
+    },
+    {
+        "name": "Googleニュース 市場",
+        "url": "https://news.google.com/rss/search?q=%E5%B8%82%E5%A0%B4&hl=ja&gl=JP&ceid=JP:ja",
     },
 ]
 
