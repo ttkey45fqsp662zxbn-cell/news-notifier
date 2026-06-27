@@ -30,18 +30,36 @@ POLITICS_SOURCES = [
     {"name": "毎日新聞", "url": "https://mainichi.jp/rss/etc/mainichi-flash.rss"},
     {"name": "産経新聞", "url": "https://www.sankei.com/politics/feed/"},
     {"name": "日本経済新聞 政治", "url": "https://www.nikkei.com/rss/news/category/politics.rdf"},
+    # Googleニュース(政治カテゴリ): 個別メディアのサイトリニューアルに
+    # 左右されにくい安定したフォールバック先として追加
+    {
+        "name": "Googleニュース 政治",
+        "url": "https://news.google.com/news/rss/headlines/section/topic/POLITICS.ja_jp/%E6%94%BF%E6%B2%BB?ned=jp&hl=ja&gl=JP",
+    },
 ]
 
 ECONOMY_SOURCES = [
     {"name": "日本経済新聞 経済", "url": "https://www.nikkei.com/rss/news/category/economy.rdf"},
     {"name": "日本経済新聞 マーケット", "url": "https://www.nikkei.com/rss/news/category/markets.rdf"},
-    {"name": "NHKニュース 経済", "url": "https://www3.nhk.or.jp/rss/news/cat5.xml"},
+    # NHK経済カテゴリ: サイトリニューアルでカテゴリ番号が変動した形跡があるため、
+    # 旧URL(www3)・新URL(news.web.nhk)・想定される番号違い(cat4/cat5)を
+    # すべて候補として登録しておく(フォールバック方式で生きているものだけ使われる)
+    {"name": "NHKニュース 経済(旧cat5)", "url": "https://www3.nhk.or.jp/rss/news/cat5.xml"},
+    {"name": "NHKニュース 経済(旧cat4)", "url": "https://www3.nhk.or.jp/rss/news/cat4.xml"},
+    {"name": "NHKニュース 経済(新cat5)", "url": "https://news.web.nhk/n-data/conf/na/rss/cat5.xml"},
+    {"name": "NHKニュース 経済(新cat4)", "url": "https://news.web.nhk/n-data/conf/na/rss/cat4.xml"},
     {"name": "共同通信", "url": "https://www.kyodo.co.jp/rss/news.rdf"},
     {"name": "時事通信 経済", "url": "https://www.jiji.com/rss/economy.rdf"},
     # 海外経済（世界経済を含めるため）
     {"name": "Reuters Japan Business", "url": "https://jp.reuters.com/rssFeed/businessNews"},
     {"name": "Bloomberg Japan", "url": "https://www.bloomberg.co.jp/feed/topics/business"},
     {"name": "ロイター(三次配信)", "url": "https://rss.app/feeds/reuters-business.xml"},
+    # Googleニュース(ビジネスカテゴリ): 個別メディアのサイトリニューアルに
+    # 左右されにくい安定したフォールバック先として追加
+    {
+        "name": "Googleニュース ビジネス",
+        "url": "https://news.google.com/news/rss/headlines/section/topic/BUSINESS.ja_jp/%E3%83%93%E3%82%B8%E3%83%8D%E3%82%B9?ned=jp&hl=ja&gl=JP",
+    },
 ]
 
 ALL_SOURCES = {
