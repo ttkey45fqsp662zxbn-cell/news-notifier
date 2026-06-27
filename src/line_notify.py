@@ -81,12 +81,32 @@ def _diversify(articles: list[dict], max_per_source: int = 2) -> list[dict]:
     return result
 
 
+def _shorten_url(url: str) -> str:
+    """TinyURLの非公式APIでURLを短縮する。失敗時は元のURLをそのまま返す。
+
+    NOTE: このAPIは公式にドキュメント化されていない簡易エンドポイントで、
+    将来的に動作しなくなる可能性がある。失敗しても処理全体が止まらないよう
+    必ず例外を握りつぶし、フォールバックとして元のURLを返す。
+    """
+    try:
+        resp = requests.get(
+            "https://tinyurl.com/api-create.php",
+            params={"url": url},
+            timeout=5,
+        )
+        if resp.status_code == 200 and resp.text.startswith("http"):
+            return resp.text.strip()
+    except Exception as e:
+        print(f"[WARN] URL短縮に失敗(元のURLを使用): {e}", file=sys.stderr)
+    return url
+
+
 def build_digest_message(politics_articles: list[dict], economy_articles: list[dict],
                           label: str, max_items_per_category: int = 6) -> str:
     """朝/夕のまとめ通知用のテキストを作る。
 
-    気になった記事は元のページに飛べるよう、リンクは常に表示する
-    (Googleニュース経由の場合はリダイレクトURLになるが、開けば元記事に到達できる)。
+    気になった記事は元のページに飛べるよう、リンクは常に表示する。
+    Googleニュース等の長いリダイレクトURLは読みやすさのため短縮する。
     1ソースに記事一覧が独占されないよう_diversify()で件数を分散させる。
     """
     politics_articles = _diversify(politics_articles)
@@ -98,7 +118,7 @@ def build_digest_message(politics_articles: list[dict], economy_articles: list[d
     if politics_articles:
         for art in politics_articles[:max_items_per_category]:
             lines.append(f"・{art['title']}（{art['source']}）")
-            lines.append(f"  {art['link']}")
+            lines.append(f"  {_shorten_url(art['link'])}")
     else:
         lines.append("特に大きな動きはありませんでした。")
 
@@ -107,7 +127,7 @@ def build_digest_message(politics_articles: list[dict], economy_articles: list[d
     if economy_articles:
         for art in economy_articles[:max_items_per_category]:
             lines.append(f"・{art['title']}（{art['source']}）")
-            lines.append(f"  {art['link']}")
+            lines.append(f"  {_shorten_url(art['link'])}")
     else:
         lines.append("特に大きな動きはありませんでした。")
 
@@ -115,12 +135,12 @@ def build_digest_message(politics_articles: list[dict], economy_articles: list[d
 
 
 def build_breaking_message(article: dict) -> str:
-    """速報1件分の通知テキストを作る。気になった記事を確認できるよう常にリンクを付ける。"""
+    """速報1件分の通知テキストを作る。気になった記事を確認できるよう常にリンクを付ける(短縮済み)。"""
     category_label = "政治" if article["category"] == "politics" else "経済"
     lines = [
         f"🚨 速報【{category_label}】",
         article["title"],
         f"（{article['source']} ほか複数ソースが報道）",
-        article["link"],
+        _shorten_url(article["link"]),
     ]
     return "\n".join(lines)
