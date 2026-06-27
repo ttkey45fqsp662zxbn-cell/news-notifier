@@ -82,18 +82,25 @@ def fetch_all(category: str) -> list[dict]:
 
     print(f"[INFO] category={category}: {alive_count}/{len(sources)} ソースが生存, "
           f"記事数={len(all_articles)}", file=sys.stderr)
-    return all_articles
-
+    return 
+  
 
 def filter_relevant(articles: list[dict]) -> list[dict]:
-    """キーワードフィルタで「政治/経済として関連性が高い」記事だけ残す。"""
+    """キーワードフィルタで「政治/経済として関連性が高い」記事だけ残す。
+
+    EXCLUDE_KEYWORDSに一致する記事(無関係な海外ニュースの誤検知、
+    内容の薄いルーティン記事など)は、関連キーワードに一致していても除外する。
+    """
     result = []
     for art in articles:
         keywords = POLITICS_KEYWORDS if art["category"] == "politics" else ECONOMY_KEYWORDS
         title = art["title"]
+        if any(ex in title for ex in EXCLUDE_KEYWORDS):
+            continue
         if any(kw in title for kw in keywords):
             result.append(art)
     return result
+
 
 
 def fetch_recent(category: str, hours: int = 12) -> list[dict]:
