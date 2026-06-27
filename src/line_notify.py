@@ -1,12 +1,19 @@
 # -*- coding: utf-8 -*-
 """
-LINE Messaging API でプッシュ通知を送るモジュール。
+LINE Messaging API で通知を送るモジュール。
 
 事前準備(README参照):
 - LINE公式アカウントを作成
 - Messaging APIを有効化してチャネルアクセストークンを発行
-- 自分自身のユーザーIDを取得
-- 上記2つをGitHub Secretsに LINE_CHANNEL_ACCESS_TOKEN / LINE_USER_ID として登録
+- GitHub Secretsに LINE_CHANNEL_ACCESS_TOKEN として登録
+
+配信方式について:
+- 「ブロードキャスト配信」を使用している(LINE公式アカウントの友だち全員にメッセージを送る方式)。
+- このアカウントの友だちは自分一人だけなので、実質的に自分専用の通知になる。
+- ユーザーID(LINE_USER_ID)の取得が不要になるメリットがある一方、
+  もし将来このアカウントに他の人を友だち追加すると、その人にも同じ通知が届く点に注意。
+- ブロードキャストには無料枠の上限がある(プランによる)。超えた場合は送信が失敗するので、
+  send_text()の戻り値(成功/失敗)をログで確認すること。
 
 LINE Notifyは2025年3月末に終了しているため、後継のMessaging APIを使う。
 """
@@ -17,23 +24,22 @@ import sys
 
 import requests
 
-LINE_PUSH_URL = "https://api.line.me/v2/bot/message/push"
+LINE_BROADCAST_URL = "https://api.line.me/v2/bot/message/broadcast"
 MAX_TEXT_LENGTH = 4900  # LINEの1メッセージあたりの上限(5000文字)に少し余裕を持たせる
 
 
-def _get_credentials() -> tuple[str, str]:
+def _get_credentials() -> str:
     token = os.environ.get("LINE_CHANNEL_ACCESS_TOKEN")
-    user_id = os.environ.get("LINE_USER_ID")
-    if not token or not user_id:
+    if not token:
         raise RuntimeError(
-            "環境変数 LINE_CHANNEL_ACCESS_TOKEN / LINE_USER_ID が設定されていません。"
+            "環境変数 LINE_CHANNEL_ACCESS_TOKEN が設定されていません。"
         )
-    return token, user_id
+    return token
 
 
 def send_text(message: str) -> bool:
-    """1件のテキストメッセージをLINEに送信する。成功時True。"""
-    token, user_id = _get_credentials()
+    """1件のテキストメッセージを、このアカウントの友だち全員にブロードキャスト送信する。成功時True。"""
+    token = _get_credentials()
 
     if len(message) > MAX_TEXT_LENGTH:
         message = message[:MAX_TEXT_LENGTH] + "\n…(以下省略)"
@@ -43,12 +49,11 @@ def send_text(message: str) -> bool:
         "Authorization": f"Bearer {token}",
     }
     payload = {
-        "to": user_id,
         "messages": [{"type": "text", "text": message}],
     }
 
     try:
-        resp = requests.post(LINE_PUSH_URL, headers=headers, json=payload, timeout=10)
+        resp = requests.post(LINE_BROADCAST_URL, headers=headers, json=payload, timeout=10)
         if resp.status_code != 200:
             print(f"[ERROR] LINE送信失敗: status={resp.status_code} body={resp.text}",
                   file=sys.stderr)
