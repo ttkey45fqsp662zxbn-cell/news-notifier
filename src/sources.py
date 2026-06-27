@@ -37,6 +37,12 @@ POLITICS_SOURCES = [
         "name": "Googleニュース 政治",
         "url": "https://news.google.com/rss/search?q=%E6%94%BF%E6%B2%BB&hl=ja&gl=JP&ceid=JP:ja",
     },
+    # トピックページ形式: 検索クエリ形式よりノイズが少なく主要記事中心になりやすいため、
+    # 動いていれば優先的にこちらも併用する(フォールバック方式)
+    {
+        "name": "Googleニュース 政治(トピック)",
+        "url": "https://news.google.com/news/rss/headlines/section/topic/POLITICS.ja_jp/%E6%94%BF%E6%B2%BB?ned=jp&hl=ja&gl=JP",
+    },
 ]
 
 ECONOMY_SOURCES = [
@@ -57,14 +63,15 @@ ECONOMY_SOURCES = [
     {"name": "ロイター(三次配信)", "url": "https://rss.app/feeds/reuters-business.xml"},
     # Googleニュース(検索クエリ形式): トピックページ形式は内部的に
     # ハッシュ化URLへリダイレクトされ不安定なため、検索クエリ形式を使う。
-    # 「経済」と「市場」の2クエリを混ぜて取りこぼしを減らす。
+    # 「市場」は曖昧で関係ない記事(スポーツの移籍市場等)が混入しやすいため、
+    # より経済特有の語「日銀」を使う。
     {
         "name": "Googleニュース 経済",
         "url": "https://news.google.com/rss/search?q=%E7%B5%8C%E6%B8%88&hl=ja&gl=JP&ceid=JP:ja",
     },
     {
-        "name": "Googleニュース 市場",
-        "url": "https://news.google.com/rss/search?q=%E5%B8%82%E5%A0%B4&hl=ja&gl=JP&ceid=JP:ja",
+        "name": "Googleニュース 日銀",
+        "url": "https://news.google.com/rss/search?q=%E6%97%A5%E9%8A%80&hl=ja&gl=JP&ceid=JP:ja",
     },
 ]
 
@@ -83,7 +90,7 @@ POLITICS_KEYWORDS = [
 
 ECONOMY_KEYWORDS = [
     "日銀", "金融政策", "金利", "インフレ", "物価", "GDP", "成長率",
-    "株価", "日経平均", "為替", "ドル", "円安", "円高", "FRB", "FOMC",
+    "株価", "日経平均", "為替", "ドル円", "円安", "円高", "FRB", "FOMC",
     "中国経済", "米経済", "貿易", "関税", "輸出", "輸入", "雇用統計",
-    "賃金", "景気", "決算", "市場", "投資", "ECB", "世界経済",
+    "賃金", "景気", "決算", "ECB", "世界経済", "財務省", "経済対策",
 ]
